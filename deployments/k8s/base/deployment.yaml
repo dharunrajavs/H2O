@@ -1,0 +1,94 @@
+# H2O Monolith Deployment
+# Single binary: TCP gateway (8080) + REST/WS API (8081) + all workers.
+# Scale by bumping replicas — Redis keeps live positions and WS fanout in sync.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h2o
+  namespace: h2o
+  labels:
+    app: h2o
+    version: latest
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: h2o
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0          # zero-downtime; always keep 3 pods during rollout
+  template:
+    metadata:
+      labels:
+        app: h2o
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/metrics"
+    spec:
+      terminationGracePeriodSeconds: 60   # allow in-flight writes to flush
+
+      # Anti-affinity: spread pods across nodes for HA
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: [h2o]
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: h2o
+          image: h2o-server:latest        # override per overlay (e.g. registry/h2o:v1.2.3)
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: tcp-gt06
+              containerPort: 8080
+              protocol: TCP
+            - name: http-api
+              containerPort: 8081
+              protocol: TCP
+
+          envFrom:
+            - configMapRef:
+                name: h2o-config
+            - secretRef:
+                name: h2o-secrets
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 2
+
+          # Graceful shutdown: SIGTERM triggers signal.NotifyContext cancel,
+          # which drains in-flight connections before the process exits.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]

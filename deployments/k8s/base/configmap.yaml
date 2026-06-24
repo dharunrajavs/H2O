@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: h2o-config
+  namespace: h2o
+data:
+  APP_ENVIRONMENT: "production"
+  APP_LOG_LEVEL: "info"
+
+  # TCP gateway (GT06 protocol)
+  TCP_HOST: "0.0.0.0"
+  TCP_PORT: "8080"
+  TCP_MAX_CONNECTIONS: "100000"
+  TCP_IDLE_TIMEOUT: "180s"
+  TCP_KEEPALIVE: "30s"
+
+  # REST + WebSocket API
+  SERVER_API_HOST: "0.0.0.0"
+  SERVER_API_PORT: "8081"
+
+  # Postgres connection pool
+  POSTGRES_MAX_OPEN_CONNS: "100"
+
+  # Redis pool
+  REDIS_POOL_SIZE: "50"
+
+  # JWT expiry
+  JWT_ACCESS_TTL: "15m"
+  JWT_REFRESH_TTL: "168h"

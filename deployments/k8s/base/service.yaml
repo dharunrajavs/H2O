@@ -1,0 +1,44 @@
+# TCP gateway service — GPS devices connect to port 8080.
+# LoadBalancer exposes a stable external IP/hostname for devices.
+# NLB (AWS/GCP) is preferred over ALB: it handles raw TCP without HTTP overhead.
+apiVersion: v1
+kind: Service
+metadata:
+  name: h2o-tcp
+  namespace: h2o
+  labels:
+    app: h2o
+  annotations:
+    # AWS NLB — remove if not on AWS
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: LoadBalancer
+  selector:
+    app: h2o
+  ports:
+    - name: gt06-tcp
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  # Preserve source IP so gateway can log device IPs
+  externalTrafficPolicy: Local
+---
+# API + WebSocket service — internal cluster access.
+# Ingress routes /api/* and /ws from the internet through this service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: h2o-api
+  namespace: h2o
+  labels:
+    app: h2o
+spec:
+  type: ClusterIP
+  selector:
+    app: h2o
+  ports:
+    - name: http-api
+      port: 8081
+      targetPort: 8081
+      protocol: TCP

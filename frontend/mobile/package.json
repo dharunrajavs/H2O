@@ -1,0 +1,35 @@
+{
+  "name": "h2o-gps-mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-native": "0.76.4",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/native-stack": "^6.11.0",
+    "@react-navigation/bottom-tabs": "^6.6.1",
+    "react-native-screens": "^4.4.0",
+    "react-native-safe-area-context": "^4.14.0",
+    "@reduxjs/toolkit": "^2.3.0",
+    "react-redux": "^9.1.2",
+    "react-native-maps": "^1.20.1",
+    "react-native-vector-icons": "^10.2.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "axios": "^1.7.9",
+    "react-native-background-fetch": "^4.2.7",
+    "react-native-push-notification": "^8.1.1",
+    "react-native-permissions": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-native": "^0.73.0",
+    "typescript": "^5.7.2"
+  }
+}

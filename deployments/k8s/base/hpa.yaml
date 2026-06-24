@@ -1,0 +1,42 @@
+# HorizontalPodAutoscaler — scales the monolith based on CPU and memory.
+# At 100K devices each pod handles ~33K connections (3 replicas baseline).
+# Scale-up: adds a pod every 30s if CPU > 70% for 1 minute.
+# Scale-down: waits 5 minutes before removing a pod (stabilise after a spike).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: h2o-hpa
+  namespace: h2o
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: h2o
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2                  # add at most 2 pods per interval
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1                  # remove at most 1 pod per 5 minutes
+          periodSeconds: 300

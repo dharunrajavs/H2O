@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+# Override image tag for production release
+images:
+  - name: h2o-server
+    newName: your-registry/h2o-server
+    newTag: "1.0.0"                  # pin a specific release tag in production
+
+# Production-specific patches
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 5                     # run 5 pods in production (vs 3 in base)
+    target:
+      kind: Deployment
+      name: h2o
+
+  - patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 5
+      - op: replace
+        path: /spec/maxReplicas
+        value: 50
+    target:
+      kind: HorizontalPodAutoscaler
+      name: h2o-hpa
+
+configMapGenerator:
+  - name: h2o-config
+    behavior: merge
+    literals:
+      - APP_ENVIRONMENT=production
+      - TCP_MAX_CONNECTIONS=100000
+      - POSTGRES_MAX_OPEN_CONNS=200
+      - REDIS_POOL_SIZE=100

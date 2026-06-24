@@ -1,0 +1,46 @@
+# H2O GPS Platform — Default Configuration
+# Override via environment variables (UPPER_SNAKE_CASE)
+
+app:
+  name: h2o-gps-platform
+  environment: development
+  log_level: info
+  debug: false
+  shutdown_timeout: 30s
+
+tcp:
+  host: "0.0.0.0"
+  port: 8080
+  max_connections: 10000
+  read_timeout: 60s
+  write_timeout: 10s
+  idle_timeout: 180s
+  keepalive: 30s
+  read_buffer_size: 4096
+  write_buffer_size: 1024
+
+postgres:
+  dsn: "postgresql://h2o:h2oSecret@localhost:5432/h2o_gps?sslmode=disable"
+  max_open_conns: 50
+  max_idle_conns: 10
+  conn_max_lifetime: 1h
+  conn_max_idle: 10m
+
+redis:
+  addrs:
+    - "localhost:6379"
+  password: ""
+  db: 0
+  pool_size: 20
+
+jwt:
+  access_secret: "CHANGE_ME_256_BIT_SECRET"
+  refresh_secret: "CHANGE_ME_REFRESH_SECRET"
+  access_ttl: 15m
+  refresh_ttl: 168h
+
+server:
+  api_host: "0.0.0.0"
+  api_port: 8081
+  ws_host: "0.0.0.0"
+  ws_port: 8082
